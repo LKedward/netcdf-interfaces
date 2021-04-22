@@ -1,0 +1,7 @@
+name="netcdf-interfaces"
+version = "4.5.3"
+license = "BSD-3-Clause AND Apache-2.0"
+copyright = "University Corporation for Atmospheric Research/Unidata"
+
+[build]
+link = ["netcdff","netcdf"]
