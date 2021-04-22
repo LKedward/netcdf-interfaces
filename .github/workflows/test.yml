@@ -52,6 +52,7 @@ jobs:
         cmake ..
         make -j
         sudo make install
+        sudo ldconfig
 
     - name: Install fpm
       uses: fortran-lang/setup-fpm@v3
