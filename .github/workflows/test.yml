@@ -62,9 +62,9 @@ jobs:
     - name: Run tests and demo programs (debug)
       run: |
         gfortran --version
-        fpm test
+        fpm test --profile debug --flag -fallow-argument-mismatch
 
     - name: Run tests and demo programs (release)
       run: |
         gfortran --version
-        fpm test --profile release
+        fpm test --profile release --flag -fallow-argument-mismatch
