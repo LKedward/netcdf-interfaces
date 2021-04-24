@@ -20,3 +20,12 @@ To use within your *fpm* project, add the following to your package manifest fil
 [dependencies]
 netcdf-interfaces = { git = "https://github.com/LKedward/netcdf-interfaces.git" }
 ```
+
+__NOTE:__ when building with `gfortran-10` you need to use `--flag -fallow-argument-mismatch` in order to compile correctly.
+
+_e.g_
+
+```shell
+$ fpm build --profile debug --flag -fallow-argument-mismatch
+$ fpm run --profile debug --flag -fallow-argument-mismatch
+```
