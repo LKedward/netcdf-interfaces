@@ -24,15 +24,6 @@ jobs:
       run: |
         sudo apt-get install libhdf5-dev libcurl4-openssl-dev --yes
 
-    # - name: Install ifort from cache
-    #   id: cache-netcdf
-    #   uses: actions/cache@v2
-    #   with:
-    #     path: |
-    #       /opt/intel/oneapi/compiler
-    #       /opt/intel/oneapi/setvars.sh
-    #     key: oneapi-cache-v0
-
     - name: Install netcdf-c
       run: |
         cd /tmp
@@ -68,3 +59,75 @@ jobs:
       run: |
         gfortran --version
         fpm test --profile release --flag -fallow-argument-mismatch
+
+  Intel:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v1
+
+    - name: Install prerequisites
+      run: |
+        sudo apt-get install libhdf5-dev libcurl4-openssl-dev --yes
+
+    - name: Install netcdf-c
+      run: |
+        cd /tmp
+        git clone https://github.com/Unidata/netcdf-c.git
+        cd netcdf-c
+        mkdir build; cd build
+        cmake ..
+        make -j
+        sudo make install
+
+    - name: Install netcdf-fortran
+      run: |
+        cd /tmp
+        git clone https://github.com/Unidata/netcdf-fortran.git
+        cd netcdf-fortran
+        mkdir build; cd build
+        cmake ..
+        make -j
+        sudo make install
+        sudo ldconfig
+
+    - name: Install fpm
+      uses: fortran-lang/setup-fpm@v3
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install ifort from cache
+      id: cache-oneapi
+      uses: actions/cache@v2
+      with:
+        path: |
+          /opt/intel/oneapi/compiler
+          /opt/intel/oneapi/setvars.sh
+        key: oneapi-cache-v0
+
+    - name: Install ifort with apt
+      if: steps.cache-oneapi.outputs.cache-hit != 'true'
+      run: |
+        wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+        sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+        rm GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB
+        echo "deb https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+        sudo apt-get update
+        sudo apt-get install intel-oneapi-ifort
+        sudo rm -rf /opt/intel/oneapi/compiler/latest/linux/lib/emu
+        sudo rm -rf /opt/intel/oneapi/compiler/latest/linux/lib/oclfpga
+
+    - name: Setup ifort env
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        printenv >> $GITHUB_ENV
+
+    - name: Run tests and demo programs (debug)
+      run: |
+        ifort --version
+        fpm test --compiler ifort
+
+    - name: Run tests and demo programs (release)
+      run: |
+        ifort --version
+        fpm test --compiler ifort --profile release
