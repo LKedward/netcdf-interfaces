@@ -5,3 +5,6 @@ copyright = "University Corporation for Atmospheric Research/Unidata"
 
 [build]
 link = ["netcdff","netcdf"]
+
+[fortran]
+implicit-external = true
